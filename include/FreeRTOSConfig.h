@@ -22,9 +22,13 @@
 #define configIDLE_SHOULD_YIELD                 1
 
 /* TODO: add CPU clock frequency configuration macro definition     */
+#define configCPU_CLOCK_HZ                      16000000
 /* TODO: add tick rate configuration macro definition               */
+#define configTICK_RATE_HZ                      250
 /* TODO: add minimal stack size configuration macro definition      */
+#define configMINIMAL_STACK_SIZE                256
 /* TODO: add total heap size configuration macro definition         */
+#define configTOTAL_HEAP_SIZE                   10240
 
 /* Memory allocation related definitions. */
 #define configSUPPORT_STATIC_ALLOCATION         0

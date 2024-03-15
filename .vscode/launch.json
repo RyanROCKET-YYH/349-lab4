@@ -1,0 +1,13 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "C/C++ Runner: Debug Session",
+      "type": "lldb",
+      "request": "launch",
+      "args": [],
+      "cwd": "/Users/yiyingli/Downloads/18349/lab4/rtos-and-interfacing-with-pc-yuhongy_yiying4/FreeRTOS/Source/portable/GCC/ARM_CM4_MPU",
+      "program": "/Users/yiyingli/Downloads/18349/lab4/rtos-and-interfacing-with-pc-yuhongy_yiying4/FreeRTOS/Source/portable/GCC/ARM_CM4_MPU/build/Debug/outDebug"
+    }
+  ]
+}

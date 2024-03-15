@@ -23,11 +23,11 @@ ivt:
 .word   spin                /* 8 RESERVED */
 .word   spin                /* 9 RESERVED*/
 .word   spin                /* 10 RESERVED */
-.word   spin                /* 11 SV call */
+.word   SVC_Handler         /* 11 SV call */
 .word   spin                /* 12 Debug reserved */
 .word   spin                /* 13 RESERVED */
-.word   spin                /* 14 PendSV */
-.word   spin                /* 15 SysTick */
+.word   PendSV_Handler      /* 14 PendSV */
+.word   SysTick_Handler     /* 15 SysTick */
 .word   spin                /* 16 IRQ0 Window Watchdog Interrupt */
 .word   spin                /* 17 IRQ1 PVD */
 .word   spin                /* 18 IRQ2 TAMPER */
