@@ -12,11 +12,12 @@
 
 .global ivt
 ivt:
-.word   0                   /* stack top address */
-.word   0                   /* 1 Reset */
+@ TODO: add the stack and the reset handler addr here.
+.word   __stack_top         /* stack top address */
+.word   _reset_             /* 1 Reset */
 .word   _nmi_               /* 2 NMI */
 .word   _hard_fault_        /* 3 Hard Fault */
-.word   spin                /* 4 MM Fault */
+.word   _mm_fault_          /* 4 MM Fault */
 .word   _bus_fault_         /* 5 Bus Fault */
 .word   _usage_fault_       /* 6 Usage Fault */
 .word   spin                /* 7 RESERVED */
@@ -39,13 +40,13 @@ ivt:
 .word   spin                /* 24 IRQ8 EXTI2   */
 .word   spin                /* 25 IRQ9 EXTI3 */
 .word   spin                /* 26 IRQ10 EXTI4 */
-.word   spin                /* 27 IRQ11 DMA1_Stream0 */
-.word   spin                /* 28 IRQ12 DMA1_Stream1 */
-.word   spin                /* 29 IRQ13 DMA1_Stream2 */
-.word   spin                /* 30 IRQ14 DMA1_Stream3 */
-.word   spin                /* 31 IRQ15 DMA1_Stream4 */
-.word   spin                /* 32 IRQ16 DMA1_Stream5 */
-.word   spin                /* 33 IRQ17 DMA1_Stream6 */
+.word   spin                /* 27 IRQ11 DMA1_Channel1   */
+.word   spin                /* 28 IRQ12 DMA1_Channel2   */
+.word   spin                /* 29 IRQ13 DMA1_Channel3 */
+.word   spin                /* 30 IRQ14 DMA1_Channel4 */
+.word   spin                /* 31 IRQ15 DMA1_Channel5   */
+.word   spin                /* 32 IRQ16 DMA1_Channel6   */
+.word   spin                /* 33 IRQ17 DMA1_Channel7 */
 .word   spin                /* 34 IRQ18 ADC1_2 */
 .word   spin                /* 35 IRQ19 CAN1_TX   */
 .word   spin                /* 36 IRQ20 CAN1_TX0   */
@@ -56,8 +57,8 @@ ivt:
 .word   spin                /* 41 IRQ25 TIM1_UP */
 .word   spin                /* 42 IRQ26 TIM1_TRG_COM */
 .word   spin                /* 43 IRQ27 TIM1_CC   */
-.word   spin                /* 44 IRQ28 TIM2   */
-.word   spin                /* 45 IRQ29 TIM3 */
+.word   tim2_irq_handler    /* 44 IRQ28 TIM2   */
+.word   tim3_irq_handler    /* 45 IRQ29 TIM3 */
 .word   spin                /* 46 IRQ30 TIM4 */
 .word   spin                /* 47 IRQ31 I2C1_EV   */
 .word   spin                /* 48 IRQ32 I2C1_ER   */
@@ -66,7 +67,7 @@ ivt:
 .word   spin                /* 51 IRQ35 SPI1   */
 .word   spin                /* 52 IRQ36 SPI2   */
 .word   spin                /* 53 IRQ37 USART1 */
-.word   spin                /* 54 IRQ38 USART2 */
+.word   uart_irq_handler    /* 54 IRQ38 USART2 */
 .word   spin                /* 55 IRQ39 USART3   */
 .word   spin                /* 56 IRQ40 EXTI15_10   */
 .word   spin                /* 57 IRQ41 RTCAlarm */
@@ -78,7 +79,7 @@ ivt:
 .word   spin                /* 63 IRQ47 RESERVED   */
 .word   spin                /* 64 IRQ48 RESERVED   */
 .word   spin                /* 65 IRQ49 RESERVED */
-.word   spin                /* 66 IRQ50 TIM5 */
+.word   tim5_irq_handler    /* 66 IRQ50 TIM5 */
 .word   spin                /* 67 IRQ51 SPI3   */
 .word   spin                /* 68 IRQ52 UART4   */
 .word   spin                /* 69 IRQ53 UART5 */
@@ -100,22 +101,73 @@ ivt:
 .section .text
 
 .thumb_func
-spin: bkpt
+spin:
+  bkpt
 
 .thumb_func
-_nmi_ : bkpt
+_nmi_ :
+  bkpt
 
 .thumb_func
-_hard_fault_ : bkpt
+_hard_fault_ :
+  bkpt
 
 .thumb_func
-_bus_fault_ : bkpt
+_mm_fault_:
+  bkpt
 
 .thumb_func
-_usage_fault_ : bkpt
+_bus_fault_ :
+  bkpt
+
+.thumb_func
+_usage_fault_ :
+  bkpt
+
+.thumb_func
+_pend_sv_ :
+  bkpt
+
+.thumb_func
+_spi1_handler:
+  bkpt
 
 .thumb_func
 .global _reset_
 _reset_:
-    bl main
-    bkpt
+
+  ldr r0, = _erodata	    /* address of initialized values in flash */
+  ldr r1, = _sdata	      /* the start of SRAM */
+  ldr r2, = _edata	      /* the end of SRAM */
+
+copy_loop:
+  cmp r1, r2              /* if r1 >= r2, all variables have been copied */
+  bge copy_done          
+  ldr r3, [r0], #4        /* load r0 to r3 and post increment by 4 */
+  str r3, [r1], #4        /* store r3 to r1 so that data to SRAM */
+  b copy_loop             /* repeat all values are copied */
+
+copy_done:
+  ldr r1, = _sbss         /* consider zero_bss by loading _sbss and _ebss */
+  ldr r2, = _ebss
+  movs r3, #0
+
+zero_bss:
+  cmp r1, r2
+  bge start_kernel        /* if r1 >= r2, .bss section is set to 0 */
+  str r3, [r1], #4
+  b zero_bss
+  
+start_kernel:
+  bl main
+  bkpt
+
+.thumb_func
+.global _sys_tick_asm_
+_sys_tick_asm_:
+  bkpt
+
+.thumb_func
+.global _svc_asm_handler_
+_svc_asm_handler_:
+  bkpt

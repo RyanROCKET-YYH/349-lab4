@@ -10,33 +10,53 @@
 #define FD_STDOUT   1
 //@}
 
+extern char __heap_low;  // Start of the heap
+extern char __heap_top;  // End of the heap (exclusive)
+static char* current_heap_end = &__heap_low; // Current "break" (end of the heap)
+
 /** @brief _sbrk allocates more area in the heap which can be used
  *  by the user caller */
 void *_sbrk(int incr) {
-    (void)incr;
-    return NULL;
+    char* previous_heap_end = current_heap_end;
+
+    // Check if the new heap end exceeds the heap top
+    if (current_heap_end + incr > &__heap_top) {
+        // We don't have enough memory for this allocation
+        return (void*)-1;
+    }
+
+    current_heap_end += incr; // Increase the heap
+    return previous_heap_end; // Return the previous break
 }
 
 /** @brief _write allows the user to write things to STDOUT */
 int _write(int file, char *ptr, int len) {
-    (void)file;
-    (void)ptr;
-    (void)len;
+    // call uart write
+    uart_write(file, ptr, len);
     return -1;
 }
 
 /** @brief _read allows the user to read from STDIN */
 int _read(int file, char *ptr, int len) {
-    (void)file;
-    (void)ptr;
-    (void)len;
+    // call uart read
+    uart_read(file, ptr, len);
     return -1;
 }
 
 /** @brief _exit exits from the current user program by printing the
  *  status, then going into sleep mode. */
 void _exit(int status) {
-    (void)status;
+    
+    char buffer[50];
+    // Format the exit status into the buffer
+    int length = snprintf(buffer, sizeof(buffer), "Program exited with status: %d\n", status);
+
+    // If snprintf succeeds, length will be the number of characters generated, excluding the null byte
+    if (length > 0) {
+        // Send the formatted string via UART
+        uart_write(FD_STDOUT, buffer, length);
+    }
+
     while (1);
 }
 
