@@ -17,16 +17,14 @@
 #include <string.h>
 // #include <printk.h>
 
-// static void vHelloWorldTask(void *pvParameters) {
-//     (void)pvParameters;  // Explicitly mark the parameter as unused
+static void vHelloWorldTask(void *pvParameters) {
+    (void)pvParameters;
 
-//     uart_init(115200);  // Initialize UART at 115200 baud rate
-//     for(;;) {
-//         // printk("\nprintk speaking\n");
-//         printf("\nHello world! printf\n");
-//         vTaskDelay(pdMS_TO_TICKS(1000));  // Delay for 1 second
-//     }
-// }
+    for (;;) {
+        printf("Hello World\n");
+        vTaskDelay(pdMS_TO_TICKS(1000));
+    }
+}
 
 void vBlinkyTask(void *pvParameters) {
     (void)pvParameters;
@@ -59,7 +57,7 @@ static void vUARTEchoTask(void *pvParameters) {
             //ensure the string is null-terminated
             buffer[numBytesRead] = '\0';
             // Echo back the received data
-            write(STDOUT_FILENO, "You typed: ", strlen("You typed: "));
+            write(STDOUT_FILENO, "You typed:", strlen("You typed:"));
             write(STDOUT_FILENO, buffer, numBytesRead);
             write(STDOUT_FILENO, "\n", 1);
         }
@@ -87,6 +85,14 @@ int main( void ) {
         NULL,
         tskIDLE_PRIORITY + 1,
         NULL); 
+
+     xTaskCreate(
+        vHelloWorldTask, 
+        "HelloWorld",
+        configMINIMAL_STACK_SIZE,
+        NULL,
+        tskIDLE_PRIORITY + 1,
+        NULL);
 
     vTaskStartScheduler();
     
