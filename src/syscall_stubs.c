@@ -12,12 +12,16 @@
 
 extern char __heap_low;  // Start of the heap
 extern char __heap_top;  // End of the heap (exclusive)
-static char* current_heap_end = &__heap_low; // Current "break" (end of the heap)
 
 /** @brief _sbrk allocates more area in the heap which can be used
  *  by the user caller */
 void *_sbrk(int incr) {
-    char* previous_heap_end = current_heap_end;
+    static char* current_heap_end; // Current "break" (end of the heap)
+    char* previous_heap_end;
+    if (current_heap_end == 0) {
+        current_heap_end = &__heap_low;
+    }
+    previous_heap_end = current_heap_end;
 
     // Check if the new heap end exceeds the heap top
     if (current_heap_end + incr > &__heap_top) {
@@ -32,15 +36,13 @@ void *_sbrk(int incr) {
 /** @brief _write allows the user to write things to STDOUT */
 int _write(int file, char *ptr, int len) {
     // call uart write
-    uart_write(file, ptr, len);
-    return -1;
+    return uart_write(file, ptr, len);
 }
 
 /** @brief _read allows the user to read from STDIN */
 int _read(int file, char *ptr, int len) {
     // call uart read
-    uart_read(file, ptr, len);
-    return -1;
+    return uart_read(file, ptr, len);
 }
 
 /** @brief _exit exits from the current user program by printing the

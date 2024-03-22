@@ -6,3 +6,4 @@ FreeRTOS/*
 
 # MacOS specific
 .DS_Store
+.vscode/settings.json

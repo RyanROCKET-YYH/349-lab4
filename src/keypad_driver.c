@@ -3,7 +3,7 @@
 #include <gpio.h>
 #include <keypad_driver.h>
 #include <unistd.h>
-#include <systick.h>
+// #include <systick.h>
 
 // the variables of keypad(columns and rows)
 #define COL1_PORT  0
@@ -69,8 +69,8 @@ void keypad_init(){
 */
 char keypad_read() {
     // debounce the inputs
-    const uint32_t debounce_time = 20;  // 20 ms
-    uint32_t last_debounce = 0;
+    // const uint32_t debounce_time = 20;  // 20 ms
+    // uint32_t last_debounce = 0;
     char key = '\0';
     for (int col = 0; col < NUM_COLS; col++) {
         // Set the current column to LO to enable to read from 7 pins
@@ -78,13 +78,13 @@ char keypad_read() {
         for (int row = 0; row < NUM_ROWS; row++) {
             // Read the current row
             if (gpio_read(row_ports[row], row_pins[row]) == 0) {
-                if ((systick_get_ticks() - last_debounce) > debounce_time) {
-                    key = key_map[row][col]; // Store the detected key
-                    last_debounce = systick_get_ticks();
-                }
+                // if ((systick_get_ticks() - last_debounce) > debounce_time) {
+                key = key_map[row][col]; // Store the detected key
+                    // last_debounce = systick_get_ticks();
+                // }
                 // Wait for the key to be released
                 while(gpio_read(row_ports[row], row_pins[row]) == 0) {
-                    last_debounce = systick_get_ticks();    // update debounce 
+                    // last_debounce = systick_get_ticks();    // update debounce 
                 }
                 gpio_set(col_ports[col], col_pins[col]); // Set column back to HI
                 return key; // Return the detected key

@@ -73,7 +73,7 @@ void i2c_master_init(uint16_t clk){
  * i2c_master_start():
  * set the start condition.
 */
-void i2c_master_start(){
+int i2c_master_start(){
     struct i2c_reg_map *i2c = I2C1_BASE;
     // First, wait until BUSY bit is cleared
     while (i2c->SR2 & I2C_SR2_BUSY);
@@ -81,20 +81,20 @@ void i2c_master_start(){
     i2c->CR1 |= I2C_CR1_START; // Make sure I2C_SB is the correct mask for the START bit in CR1
     // Now wait for the SB flag to be set
     while (!(i2c->SR1 & I2C_SR1_SB));
-    return;
+    return 0;
 }
 
 /*
  * i2c_master_stop():
  * set the stop condition.
 */
-void i2c_master_stop(){
+int i2c_master_stop(){
     struct i2c_reg_map *i2c = I2C1_BASE;
     // check TxE and BTF bit (they should be set to 1)(EV8_2)
     while (!(i2c->SR1 & I2C_SR1_BTF) && !(i2c-> SR1 & I2C_SR1_TXE));
     // set stop bit
     i2c->CR1 |= I2C_CR1_STOP;
-    return;
+    return 0;
 }
 
 /*
