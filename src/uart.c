@@ -8,6 +8,8 @@
  * @author Yuhong Yao (yuhongy), Yiying Li (yiyingl4)
  */
 
+#include "FreeRTOS.h"
+#include "task.h"
 #include <unistd.h>
 #include <rcc.h>
 #include <uart.h>
@@ -93,28 +95,42 @@ int RingBuffer_isEmpty(RingBuffer *rb) {
 
 /** @brief check if buffer is full, since mod or divid will take a lot cycles, use masks to determine if full when tail wrapped to head. */
 int RingBuffer_isFull(RingBuffer *rb) {
+    
     return (((rb->tail + 1) & (BUFFER_SIZE - 1)) == rb->head); 
 }
 
 /** @brief add a byte to the buffer at tail. */
 int RingBuffer_Write(RingBuffer *rb, char data) {
-    if (RingBuffer_isFull(rb)) {
-        return -1; // buffer is full
+    int status;
+
+    // taskENTER_CRITICAL();
+    if (!RingBuffer_isFull(rb)) {
+        rb->buffer[rb->tail] = data;
+        rb->tail = (rb->tail + 1) & (BUFFER_SIZE - 1);
+        status = 0; // Success
+    } else {
+        status = -1; // Buffer is full
     }
-    // write at the tail
-    rb->buffer[rb->tail] = data;
-    rb->tail = (rb->tail + 1) & (BUFFER_SIZE - 1);
-    return 0;
+    // taskEXIT_CRITICAL(); // Exit the critical section
+
+    return status;
 }
 
 /** @brief read the buffer from head and advance the head. */
 int RingBuffer_Read(RingBuffer *rb, char *data) {
-    if (RingBuffer_isEmpty(rb)) {
-        return -1;
+    int status;
+
+    // taskENTER_CRITICAL();
+    if (!RingBuffer_isEmpty(rb)) {
+        *data = rb->buffer[rb->head];
+        rb->head = (rb->head + 1) & (BUFFER_SIZE - 1);
+        status = 0; // Success
+    } else {
+        status = -1; // Buffer is empty
     }
-    *data = rb->buffer[rb->head];
-    rb->head = (rb->head + 1) & (BUFFER_SIZE - 1);
-    return 0;
+    // taskEXIT_CRITICAL(); // Exit the critical section
+
+    return status;
 }
 
 

@@ -13,6 +13,8 @@
 #include <stdio.h>
 #include <uart.h>
 #include <gpio.h>
+#include <unistd.h>
+#include <string.h>
 // #include <printk.h>
 
 // static void vHelloWorldTask(void *pvParameters) {
@@ -44,8 +46,31 @@ void vBlinkyTask(void *pvParameters) {
     
 }
 
+static void vUARTEchoTask(void *pvParameters) {
+    (void)pvParameters;
+    char buffer[100];
+    ssize_t numBytesRead;
+
+    for (;;) {
+        // Attempt to read data from UART
+        numBytesRead = read(STDIN_FILENO, buffer, sizeof(buffer) - 1);
+        // check if data was read
+        if (numBytesRead > 0) {
+            //ensure the string is null-terminated
+            buffer[numBytesRead] = '\0';
+            // Echo back the received data
+            write(STDOUT_FILENO, "You typed: ", strlen("You typed: "));
+            write(STDOUT_FILENO, buffer, numBytesRead);
+            write(STDOUT_FILENO, "\n", 1);
+        }
+        vTaskDelay(pdMS_TO_TICKS(100));
+    }
+}
+
 
 int main( void ) {
+    uart_init(115200);
+
     xTaskCreate(
         vBlinkyTask,
         "BlinkyTask",
@@ -53,6 +78,15 @@ int main( void ) {
         NULL,
         tskIDLE_PRIORITY + 1,
         NULL);
+
+    // Create the UART echo task
+    xTaskCreate(
+        vUARTEchoTask,
+        "UARTEcho",
+        configMINIMAL_STACK_SIZE,
+        NULL,
+        tskIDLE_PRIORITY + 1,
+        NULL); 
 
     vTaskStartScheduler();
     
