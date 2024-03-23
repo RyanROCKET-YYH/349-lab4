@@ -59,6 +59,7 @@
   "files.associations": {
     "task.h": "c",
     "printf.h": "c",
-    "stdio.h": "c"
+    "stdio.h": "c",
+    "keypad_driver.h": "c"
   }
 }
