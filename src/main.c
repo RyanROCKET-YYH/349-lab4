@@ -21,53 +21,53 @@
 #include <servo.h>
 // #include <printk.h>
 
-// static void vHelloWorldTask(void *pvParameters) {
-//     (void)pvParameters;
+static void vHelloWorldTask(void *pvParameters) {
+    (void)pvParameters;
 
-//     for (;;) {
-//         printf("Hello World\n");
-//         vTaskDelay(pdMS_TO_TICKS(1000));
-//     }
-// }
+    for (;;) {
+        printf("Hello World\n");
+        vTaskDelay(pdMS_TO_TICKS(1000));
+    }
+}
 
-// void vBlinkyTask(void *pvParameters) {
-//     (void)pvParameters;
-//     // blue led init
-//     gpio_init(GPIO_A, 5, MODE_GP_OUTPUT, OUTPUT_PUSH_PULL, OUTPUT_SPEED_LOW, PUPD_NONE, ALT0);
+void vBlinkyTask(void *pvParameters) {
+    (void)pvParameters;
+    // blue led init
+    gpio_init(GPIO_A, 5, MODE_GP_OUTPUT, OUTPUT_PUSH_PULL, OUTPUT_SPEED_LOW, PUPD_NONE, ALT0);
 
-//     for(;;) {
-//         if (gpio_read(GPIO_A, 5)) {
-//             gpio_clr(GPIO_A, 5);
-//         } else {
-//             gpio_set(GPIO_A, 5);
-//         }
+    for(;;) {
+        if (gpio_read(GPIO_A, 5)) {
+            gpio_clr(GPIO_A, 5);
+        } else {
+            gpio_set(GPIO_A, 5);
+        }
 
-//         // wait for 1000 millisec
-//         vTaskDelay(pdMS_TO_TICKS(500));
-//     }
+        // wait for 1000 millisec
+        vTaskDelay(pdMS_TO_TICKS(500));
+    }
     
-// }
+}
 
-// static void vUARTEchoTask(void *pvParameters) {
-//     (void)pvParameters;
-//     char buffer[100];
-//     ssize_t numBytesRead;
+static void vUARTEchoTask(void *pvParameters) {
+    (void)pvParameters;
+    char buffer[100];
+    ssize_t numBytesRead;
 
-//     for (;;) {
-//         // Attempt to read data from UART
-//         numBytesRead = read(STDIN_FILENO, buffer, sizeof(buffer) - 1);
-//         // check if data was read
-//         if (numBytesRead > 0) {
-//             //ensure the string is null-terminated
-//             buffer[numBytesRead] = '\0';
-//             // Echo back the received data
-//             write(STDOUT_FILENO, "You typed:", strlen("You typed:"));
-//             write(STDOUT_FILENO, buffer, numBytesRead);
-//             write(STDOUT_FILENO, "\n", 1);
-//         }
-//         vTaskDelay(pdMS_TO_TICKS(100));
-//     }
-// }
+    for (;;) {
+        // Attempt to read data from UART
+        numBytesRead = read(STDIN_FILENO, buffer, sizeof(buffer) - 1);
+        // check if data was read
+        if (numBytesRead > 0) {
+            //ensure the string is null-terminated
+            buffer[numBytesRead] = '\0';
+            // Echo back the received data
+            write(STDOUT_FILENO, "You typed:", strlen("You typed:"));
+            write(STDOUT_FILENO, buffer, numBytesRead);
+            write(STDOUT_FILENO, "\n", 1);
+        }
+        vTaskDelay(pdMS_TO_TICKS(100));
+    }
+}
 
 /**
  * key_display():
@@ -93,7 +93,7 @@ void key_display(char key, uint8_t *row, uint8_t *col) {
 
 void vKeypadServoLCDTask(void *pvParameters) {
     (void)pvParameters;
-    char prompt[] = "Enter angle:";
+    char prompt[] = "Enter angle:\0";
     char angleStr[4] = {0};
     int angleIndex = 0;
     uint8_t row = 0, col = 0; //lcd cursor
@@ -107,6 +107,7 @@ void vKeypadServoLCDTask(void *pvParameters) {
     taskENTER_CRITICAL();
     lcd_set_cursor(row, col);
     lcd_print(prompt);
+    // key_display(*prompt, &row, &col);
     taskEXIT_CRITICAL();
     row = 1; // Move to second line for input display
 
@@ -149,30 +150,30 @@ void vKeypadServoLCDTask(void *pvParameters) {
 int main( void ) {
     uart_init(115200);
 
-    // xTaskCreate(
-    //     vBlinkyTask,
-    //     "BlinkyTask",
-    //     configMINIMAL_STACK_SIZE,
-    //     NULL,
-    //     tskIDLE_PRIORITY + 1,
-    //     NULL);
+    xTaskCreate(
+        vBlinkyTask,
+        "BlinkyTask",
+        configMINIMAL_STACK_SIZE,
+        NULL,
+        tskIDLE_PRIORITY + 1,
+        NULL);
 
-    // // Create the UART echo task
-    // xTaskCreate(
-    //     vUARTEchoTask,
-    //     "UARTEcho",
-    //     configMINIMAL_STACK_SIZE,
-    //     NULL,
-    //     tskIDLE_PRIORITY + 1,
-    //     NULL); 
+    // Create the UART echo task
+    xTaskCreate(
+        vUARTEchoTask,
+        "UARTEcho",
+        configMINIMAL_STACK_SIZE,
+        NULL,
+        tskIDLE_PRIORITY + 1,
+        NULL); 
 
-    // xTaskCreate(
-    //     vHelloWorldTask, 
-    //     "HelloWorld",
-    //     configMINIMAL_STACK_SIZE,
-    //     NULL,
-    //     tskIDLE_PRIORITY + 1,
-    //     NULL);
+    xTaskCreate(
+        vHelloWorldTask, 
+        "HelloWorld",
+        configMINIMAL_STACK_SIZE,
+        NULL,
+        tskIDLE_PRIORITY + 1,
+        NULL);
 
     // servo keypad
     xTaskCreate(vKeypadServoLCDTask, "KeypadServoLCD", configMINIMAL_STACK_SIZE, NULL, tskIDLE_PRIORITY + 1, NULL);
