@@ -21,11 +21,16 @@
 #include <servo.h>
 // #include <printk.h>
 
+volatile bool isInCommandMode = true;
+
 static void vHelloWorldTask(void *pvParameters) {
     (void)pvParameters;
 
     for (;;) {
-        printf("Hello World\n");
+        // when it is command mode, it doesn't print
+        if (!isInCommandMode){
+            printf("Hello World\n");
+        }
         vTaskDelay(pdMS_TO_TICKS(1000));
     }
 }
@@ -54,17 +59,21 @@ static void vUARTEchoTask(void *pvParameters) {
     ssize_t numBytesRead;
 
     for (;;) {
-        // Attempt to read data from UART
-        numBytesRead = read(STDIN_FILENO, buffer, sizeof(buffer) - 1);
-        // check if data was read
-        if (numBytesRead > 0) {
-            //ensure the string is null-terminated
-            buffer[numBytesRead] = '\0';
-            // Echo back the received data
-            write(STDOUT_FILENO, "You typed:", strlen("You typed:"));
-            write(STDOUT_FILENO, buffer, numBytesRead);
-            write(STDOUT_FILENO, "\n", 1);
+        // only work when command mode
+        if (isInCommandMode){
+            // Attempt to read data from UART
+            numBytesRead = read(STDIN_FILENO, buffer, sizeof(buffer) - 1);
+            // check if data was read
+            if (numBytesRead > 0) {
+                //ensure the string is null-terminated
+                buffer[numBytesRead] = '\0';
+                // Echo back the received data
+                write(STDOUT_FILENO, "You typed:", strlen("You typed:"));
+                write(STDOUT_FILENO, buffer, numBytesRead);
+                write(STDOUT_FILENO, "\n", 1);
+            }
         }
+        
         vTaskDelay(pdMS_TO_TICKS(100));
     }
 }
@@ -112,35 +121,39 @@ void vKeypadServoLCDTask(void *pvParameters) {
     row = 1; // Move to second line for input display
 
     for (;;) {
-        char key = keypad_read();
-        if (key == '#') {
-            angleStr[angleIndex] = '\0';
-            int angle = atoi(angleStr);
-            if (angle >= 0 && angle <= 180) {
-                // Assuming a function to control servo here
-                servo_enable(0, 1); // channel 0
-                servo_set(0, angle); // set to 47 degree
-                printf("Setting channel %d to angle %d\n",  1, angle);
-            } else {
-                printf("Invalid angle.\n");
+        // when it is command mode, it doesn't read keypad
+        if (!isInCommandMode){
+            char key = keypad_read();
+            if (key == '#') {
+                angleStr[angleIndex] = '\0';
+                int angle = atoi(angleStr);
+                if (angle >= 0 && angle <= 180) {
+                    // Assuming a function to control servo here
+                    servo_enable(0, 1); // channel 0
+                    servo_set(0, angle); // set to 47 degree
+                    printf("Setting channel %d to angle %d\n",  1, angle);
+                } else {
+                    printf("Invalid angle.\n");
+                }
+
+                lcd_clear();
+                taskENTER_CRITICAL();
+                lcd_set_cursor(0, 0);
+                lcd_print(prompt); // print "Enter angle:" at the first line
+                taskEXIT_CRITICAL();
+
+                memset(angleStr, 0, sizeof(angleStr)); // Clear angle string
+                angleIndex = 0;
+                row = 1; col = 0; // Reset to second line for next input
             }
-
-            lcd_clear();
-            taskENTER_CRITICAL();
-            lcd_set_cursor(0, 0);
-            lcd_print(prompt); // print "Enter angle:" at the first line
-            taskEXIT_CRITICAL();
-
-            memset(angleStr, 0, sizeof(angleStr)); // Clear angle string
-            angleIndex = 0;
-            row = 1; col = 0; // Reset to second line for next input
+            else if ((key >= '0' && key <= '9') && angleIndex < 3) {
+                angleStr[angleIndex++] = key;
+                taskENTER_CRITICAL();
+                key_display(key, &row, &col);
+                taskEXIT_CRITICAL();
+            }
         }
-        else if ((key >= '0' && key <= '9') && angleIndex < 3) {
-            angleStr[angleIndex++] = key;
-            taskENTER_CRITICAL();
-            key_display(key, &row, &col);
-            taskEXIT_CRITICAL();
-        }
+        
         vTaskDelay(pdMS_TO_TICKS(100)); // Polling delay
     }
 }
