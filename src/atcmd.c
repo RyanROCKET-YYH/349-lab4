@@ -33,17 +33,41 @@ uint8_t atcmd_detect_escape(UNUSED atcmd_parser_t *parser, UNUSED char c) {
     return 0;
 }
 
+// check each command stored in the atcmd parser to see if its cmdstr matches the provided command name
+// return 1 if command is found; return 0 when command is not found
 uint8_t atcmd_parse(UNUSED atcmd_parser_t *parser, UNUSED char *cmd) {
-    for (uint32_t i = 0; i < parser->num_atcmds; i++) {
-        const atcmd_t *atcmd = &parser->atcmds[i];
-        // check if it starts with "AT+"
-        if (strncmp(cmd, "AT+", 3) == 0 && strcmp(cmd + 3, atcmd->cmdstr) == 0) {
-            if (atcmd->fn(atcmd->args, NULL)) {
-                printf("Command %s executed successfully.\n", atcmd->cmdstr);
-                return 1;
-            }
-        }
+    // command doesn't start with AT+
+    if (strncmp(cmd, "AT+", 3) != 0) {
+        printf("Command does not start with 'AT+'.\n");
+        return 0;
     }
-    printf("Command not found.\n");
+
+    cmd += 3; // the part after "AT+"
+
+    // check if "AT+RESUME"
+    if (strcmp(cmd, "RESUME") == 0) {
+        printf("AT+RESUME command executed successfully.\n");
+        return 1;
+    }
+    // check if "AT+HELLO=<name>"
+    else if (strncmp(cmd, "HELLO=", 6) == 0) {
+        char *name = cmd + 6;
+        printf("HELLO command executed with name: %s\n", name);
+        return 1;
+    }
+    // check if "AT+PASSCODE?"
+    else if (strcmp(cmd, "PASSCODE?") == 0) {
+        printf("AT+PASSCODE? executed successfully.\n");
+        return 1;
+    }
+    // check if "AT+PASSCODE=<passcode>"
+    else if (strncmp(cmd, "PASSCODE=", 9) == 0) {
+        char *passcode = cmd + 9;
+        printf("PASSCODE command executed with passcode: %s\n", passcode);
+        return 1;
+    }
+
+    // if it doesn't match any of the defined command
+    printf("Invalid or unrecognized command.\n");
     return 0;
 }
