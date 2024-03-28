@@ -158,6 +158,20 @@ void vKeypadServoLCDTask(void *pvParameters) {
     }
 }
 
+// 8.4
+void escapeSequenceTask(void *pvParameters) {
+    char byte;
+    while (1) {
+        if (!isInCommandMode) {
+            if (uart_get_byte(&byte)) { // If a byte was read
+                if (atcmd_detect_escape(NULL, byte)) {
+                }
+            }
+        }
+        vTaskDelay(pdMS_TO_TICKS(10));
+    }
+}
+
 
 
 int main( void ) {
