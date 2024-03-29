@@ -176,6 +176,8 @@ void vKeypadServoLCDTask(void *pvParameters) {
                         servo_set(0, is_locked ? LOCKED_POSITION : UNLOCKED_POSITION);
                         lcd_clear();
                         lcd_print(is_locked ? "Locking!" : "Unlocking!");
+                        const char* message = is_locked ? "Locking!\n" : "Unlocking!\n";
+                        write(STDOUT_FILENO, message, strlen(message));
                         vTaskDelay(pdMS_TO_TICKS(1000));
                         lcd_clear();
                         lcd_print(prompt);

@@ -6,7 +6,7 @@ import serial
 
 def main():
     # Open serial port
-    ser = serial.Serial('/dev/ttyACM0', 115200)
+    ser = serial.Serial('/dev/cu.usbmodem145303', 115200)
 
     # Send some AT commands
     ser.write(b'+++')
