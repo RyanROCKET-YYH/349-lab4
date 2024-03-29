@@ -33,8 +33,6 @@ uint8_t atcmd_detect_escape(UNUSED atcmd_parser_t *parser, UNUSED char c) {
         plusCount++;
         if (plusCount == 3) {
             // Detected three consecutive '+'
-            printf("Entering Command Mode.\n");
-            isInCommandMode = 1;
             plusCount = 0; // Reset count
             return 1; // Indicate that escape sequence has been detected.
         }

@@ -31,7 +31,6 @@ uint8_t handleResume(void *args, const char *cmdArgs) {
     (void)cmdArgs;
     isInCommandMode = false;
     printf("Exit command mode\n");
-    // TODO: can't make it print "hello world" from Section 6.3 to resume printing.
     return 1; // sucess
 }
 
@@ -176,18 +175,22 @@ void vKeypadServoLCDTask(void *pvParameters) {
 }
 
 // 8.4
-// void escapeSequenceTask(void *pvParameters) {
-//     char byte;
-//     while (1) {
-//         if (!isInCommandMode) {
-//             if (uart_get_byte(&byte)) { // If a byte was read
-//                 if (atcmd_detect_escape(NULL, byte)) {
-//                 }
-//             }
-//         }
-//         vTaskDelay(pdMS_TO_TICKS(10));
-//     }
-// }
+void escapeSequenceTask(void *pvParameters) {
+    (void)pvParameters;
+    char byte;
+    while (1) {
+        if (!isInCommandMode) {
+            if (uart_get_byte(&byte) == 0) { 
+                // Directly pass each byte to atcmd_detect_escape
+                if (atcmd_detect_escape(NULL, byte)) {
+                    isInCommandMode = 1;
+                    printf("Entering Command Mode.\n");
+                }
+            }
+        }
+        vTaskDelay(pdMS_TO_TICKS(10));
+    }
+}
 
 
 
@@ -231,6 +234,13 @@ int main( void ) {
         tskIDLE_PRIORITY + 1, 
         NULL);
 
+    xTaskCreate(
+        escapeSequenceTask, 
+        "ENTERCommand", 
+        configMINIMAL_STACK_SIZE, 
+        NULL, 
+        tskIDLE_PRIORITY + 1, 
+        NULL);
     vTaskStartScheduler();
     
     // Infinite loop
