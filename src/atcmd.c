@@ -1,11 +1,11 @@
 /**
- * @file i2c.c
+ * @file atcmd.c
  *
- * @brief
+ * @brief main file to run the whole program
  *
- * @date
+ * @date 03/29/2024
  *
- * @author
+ * @author Yuhong Yao (yuhongy), Yiying Li (yiyingl4)
  */
 
 #include <atcmd.h>
@@ -18,14 +18,23 @@
 
 #define UNUSED __attribute__((unused))
 
+/** @brief define a variable to command mode */
 int isInCommandMode = 1;
 
+/**
+ * @brief  initialize the atcmd_parser
+ *
+*/
 void atcmd_parser_init(UNUSED atcmd_parser_t *parser, UNUSED const atcmd_t *atcmds, UNUSED uint32_t num_atcmds) {
     memset(parser, 0x00, sizeof(atcmd_parser_t));
     parser->atcmds = atcmds;
     parser->num_atcmds = num_atcmds;
 }
 
+/**
+ * @brief detect +++ command
+ *
+*/
 uint8_t atcmd_detect_escape(UNUSED atcmd_parser_t *parser, UNUSED char c) {
     static uint8_t plusCount = 0; // Count of '+'
 
@@ -42,8 +51,10 @@ uint8_t atcmd_detect_escape(UNUSED atcmd_parser_t *parser, UNUSED char c) {
     return 0; // Escape sequence not detected or incomplete.
 }
 
-// check each command stored in the atcmd parser to see if its cmdstr matches the provided command name
-// return 1 if command is found; return 0 when command is not found
+/**
+ * @brief check each command stored in the atcmd parser to see if its cmdstr matches the provided command name
+ *        return 1 if command is found; return 0 when command is not found
+*/
 uint8_t atcmd_parse(UNUSED atcmd_parser_t *parser, UNUSED char *cmd) {
 
     if (cmd == NULL || parser == NULL) {

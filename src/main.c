@@ -1,11 +1,11 @@
 /**
  * @file main.c
  *
- * @brief
+ * @brief main file to run the whole program
  *
- * @date
+ * @date 03/29/2024
  *
- * @author
+ * @author Yuhong Yao (yuhongy), Yiying Li (yiyingl4)
  */
 
 #include <FreeRTOS.h>
@@ -23,13 +23,22 @@
 #include <i2c.h>
 #include <atcmd.h>
 
+/** @brief define MAX_PASSCODE_LENGTH */
 #define MAX_PASSCODE_LENGTH 12
+/** @brief define LOCKED_POSITION */
 #define LOCKED_POSITION 0
+/** @brief define UNLOCKED_POSITION */
 #define UNLOCKED_POSITION 180
 
+/** @brief define parser */
 atcmd_parser_t parser;
+/** @brief define passcode */
 int g_passcode = 349;
 
+/**
+ * @brief  handle the AT+Resume command
+ * 
+*/
 uint8_t handleResume(void *args, const char *cmdArgs) {
     (void)args;
     (void)cmdArgs;
@@ -38,6 +47,10 @@ uint8_t handleResume(void *args, const char *cmdArgs) {
     return 1; // sucess
 }
 
+/**
+ * @brief  handle the AT+Hello=<> command
+ *
+*/
 uint8_t handleHello(void *args, const char *cmdArgs) {
     (void)args;
     if (cmdArgs != NULL) {
@@ -48,6 +61,10 @@ uint8_t handleHello(void *args, const char *cmdArgs) {
     return 1; // success
 }
 
+/**
+ * @brief  handle the AT+Passcpde? command
+ *
+*/
 uint8_t handlePasscode(void *args, const char *cmdArgs) {
     (void)args;
     (void)cmdArgs;
@@ -55,6 +72,10 @@ uint8_t handlePasscode(void *args, const char *cmdArgs) {
     return 1; // success
 }
 
+/**
+ * @brief  handle the AT+Passcpde=<> command
+ *
+*/
 uint8_t handlePasscodeChange(void *args, const char *cmdArgs) {
     (void)args; 
 
@@ -71,6 +92,13 @@ uint8_t handlePasscodeChange(void *args, const char *cmdArgs) {
     return 0; // Fail
 }
 
+/**
+ * @brief  handle the commands:
+ * AT+RESUME
+ * AT+HELLO=<>
+ * AT+PASSCODE?
+ * AT+PASSCODE=<>
+*/
 const atcmd_t commands[] = {
     {"RESUME", handleResume, NULL},
     {"HELLO", handleHello, NULL},
@@ -78,6 +106,10 @@ const atcmd_t commands[] = {
     {"PASSCODE", handlePasscodeChange, NULL}
 };
 
+/**
+ * @brief  handle the Hello World task
+ *
+*/
 static void vHelloWorldTask(void *pvParameters) {
     (void)pvParameters;
 
@@ -90,6 +122,10 @@ static void vHelloWorldTask(void *pvParameters) {
     }
 }
 
+/**
+ * @brief  handle the Blinky LED task
+ *
+*/
 void vBlinkyTask(void *pvParameters) {
     (void)pvParameters;
     // blue led init
@@ -107,6 +143,10 @@ void vBlinkyTask(void *pvParameters) {
     }
 }
 
+/**
+ * @brief  handle the UART echo task
+ *
+*/
 static void vUARTEchoTask(void *pvParameters) {
     (void)pvParameters;
     char buffer[100];
@@ -138,6 +178,10 @@ static void vUARTEchoTask(void *pvParameters) {
     }
 }
 
+/**
+ * @brief  handle the keypad and servo task
+ *
+*/
 void vKeypadServoLCDTask(void *pvParameters) {
     (void)pvParameters;
     char passcode[MAX_PASSCODE_LENGTH] = {0};
@@ -200,7 +244,11 @@ void vKeypadServoLCDTask(void *pvParameters) {
     }
 }
 
-// 8.4
+
+/**
+ * @brief  handle the escape task // 8.4
+ *
+*/
 void escapeSequenceTask(void *pvParameters) {
     (void)pvParameters;
     char byte;
@@ -218,8 +266,10 @@ void escapeSequenceTask(void *pvParameters) {
     }
 }
 
-
-
+/**
+ * @brief main function
+ *
+*/
 int main( void ) {
     uart_init(115200);
     keypad_init();

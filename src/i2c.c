@@ -32,21 +32,31 @@ struct i2c_reg_map {
 #define I2C_CR1_START  (1 << 8)
 
 /** @brief Stop bit mask */
-#define I2C_CR1_STOP  (1 << 9) 
+#define I2C_CR1_STOP  (1 << 9)
+/** @brief Enable mask */
 #define I2C_EN  (1)
+/** @brief I2C_CR1_SWRST bit mask */
 #define I2C_CR1_SWRST (1 << 15)
+/** @brief I2C_SR1_BTF bit mask */
 #define I2C_SR1_BTF (1 << 2)
+/** @brief I2C_SR1_TXE bit mask */
 #define I2C_SR1_TXE (1 << 7)
+/** @brief I2C_SR1_ADDR bit mask */
 #define I2C_SR1_ADDR (1 << 1)
+/** @brief I2C_TRISE bit mask */
 #define I2C_TRISE (0x17)
+/** @brief I2C_SR2_BUSY bit mask */
 #define I2C_SR2_BUSY (1 << 1)
+/** @brief I2C_CR1_ACK bit mask */
 #define I2C_CR1_ACK (1 << 10)
+/** @brief I2C_SR1_SB bit mask */
 #define I2C_SR1_SB (1)
 
-/*
- * i2c_master_init():
- * initialize the master mode in i2c.
-*/
+/**
+ *
+ * @brief  initialize the master mode in i2c.
+ *
+ */
 void i2c_master_init(uint16_t clk){
     (void) clk;
 
@@ -69,10 +79,11 @@ void i2c_master_init(uint16_t clk){
     return;
 }
 
-/*
- * i2c_master_start():
- * set the start condition.
-*/
+/**
+ *
+ * @brief set the start condition.
+ *
+ */
 int i2c_master_start(){
     struct i2c_reg_map *i2c = I2C1_BASE;
     // First, wait until BUSY bit is cleared
@@ -84,10 +95,11 @@ int i2c_master_start(){
     return 0;
 }
 
-/*
- * i2c_master_stop():
- * set the stop condition.
-*/
+/**
+ *
+ * @brief set the stop condition.
+ *
+ */
 int i2c_master_stop(){
     struct i2c_reg_map *i2c = I2C1_BASE;
     // check TxE and BTF bit (they should be set to 1)(EV8_2)
@@ -97,11 +109,11 @@ int i2c_master_stop(){
     return 0;
 }
 
-/*
- * i2c_master_write():
- * The main function of writing string that stored in buf to slave address.
- * 
-*/
+/**
+ *
+ * @brief The main function of writing string that stored in buf to slave address.
+ *
+ */
 int i2c_master_write(uint8_t *buf, uint16_t len, uint8_t slave_addr){
     struct i2c_reg_map *i2c = I2C1_BASE;
 
@@ -130,11 +142,11 @@ int i2c_master_write(uint8_t *buf, uint16_t len, uint8_t slave_addr){
     return 0;
 }
 
-/*
- * i2c_master_read():
- * It is to debug the i2c_master_write().
- * 
-*/
+/**
+ *
+ * @brief It is to debug the i2c_master_write().
+ *
+ */
 int i2c_master_read(uint8_t *buf, uint16_t len, uint8_t slave_addr){
     (void) buf;
     (void) len;

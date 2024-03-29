@@ -3,13 +3,11 @@
 
 @mainpage 349 Lab 4
 
-Any additional comments you want to make can go here.  Did you like the
-project?  Was it too hard, too easy? Well, you get the idea.
+Yuhong Yao(yuhongy), Yiying Li(yiyingl4)
 
-Include a breakdown of the work split between you and your partner.
+It's our first time to use RTOS. It's really cool.
 
-As a last little note, please make sure that all the documentation you
-turn in is true and accurate.  Otherwise, we will deduct points.
+Yiying worked on integrating FreeRTOS, 6.4 task, and at command function. Yuhong handled the remaining parts and combined everything together.
 
 
 */
