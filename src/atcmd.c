@@ -1,7 +1,7 @@
 /**
  * @file atcmd.c
  *
- * @brief main file to run the whole program
+ * @brief some functions about AT command
  *
  * @date 03/29/2024
  *

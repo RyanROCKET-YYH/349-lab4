@@ -1,4 +1,12 @@
-/* i2c.c contains the functions to implement i2c master mode.*/
+/**
+ * @file i2c.c
+ *
+ * @brief i2c.c contains the functions to implement i2c master mode
+ *
+ * @date 03/29/2024
+ *
+ * @author Yuhong Yao (yuhongy), Yiying Li (yiyingl4)
+ */
 #include <gpio.h>
 #include <i2c.h>
 #include <unistd.h>
