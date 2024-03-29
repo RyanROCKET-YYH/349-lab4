@@ -19,6 +19,8 @@
 #include <keypad_driver.h>
 #include <stdlib.h>
 #include <servo.h>
+#include <stdbool.h>
+#include <i2c.h>
 // #include <printk.h>
 
 volatile bool isInCommandMode = true;
@@ -56,13 +58,14 @@ void vBlinkyTask(void *pvParameters) {
 static void vUARTEchoTask(void *pvParameters) {
     (void)pvParameters;
     char buffer[100];
-    ssize_t numBytesRead;
 
     for (;;) {
         // only work when command mode
         if (isInCommandMode){
+            write(STDOUT_FILENO, "> ", 2);
             // Attempt to read data from UART
-            numBytesRead = read(STDIN_FILENO, buffer, sizeof(buffer) - 1);
+            memset(buffer, 0, sizeof(buffer)); // clear buffer
+            ssize_t numBytesRead = read(STDIN_FILENO, buffer, sizeof(buffer) - 1);
             // check if data was read
             if (numBytesRead > 0) {
                 //ensure the string is null-terminated
@@ -100,82 +103,74 @@ void key_display(char key, uint8_t *row, uint8_t *col) {
     (*col)++; // Move cursor position forward
 }
 
+
 void vKeypadServoLCDTask(void *pvParameters) {
     (void)pvParameters;
-    char prompt[] = "Enter angle:\0";
-    char angleStr[4] = {0};
+    char prompt[] = "Enter angle:";
+    char angleStr[5] = {0};
     int angleIndex = 0;
-    uint8_t row = 0, col = 0; //lcd cursor
+    lcd_driver_init();
 
     // SERVO 1 (A0)
     gpio_init(GPIO_A, 0, MODE_GP_OUTPUT, OUTPUT_PUSH_PULL, OUTPUT_SPEED_LOW, PUPD_NONE, ALT0);
     // SERVO 2 (A1)
     gpio_init(GPIO_A, 1, MODE_GP_OUTPUT, OUTPUT_PUSH_PULL, OUTPUT_SPEED_LOW, PUPD_NONE, ALT0);
-
+    servo_enable(0, 1);
     lcd_clear();
-    taskENTER_CRITICAL();
-    lcd_set_cursor(row, col);
     lcd_print(prompt);
-    // key_display(*prompt, &row, &col);
-    taskEXIT_CRITICAL();
-    row = 1; // Move to second line for input display
 
     for (;;) {
         // when it is command mode, it doesn't read keypad
-        if (!isInCommandMode){
-            char key = keypad_read();
-            if (key == '#') {
+        // if (!isInCommandMode){
+        char key = keypad_read();
+        if (key != '\0') {
+            if ((key >= '0' && key <= '9') && angleIndex < 3) {
+                angleStr[angleIndex++] = key;
+                angleStr[angleIndex] = '\0';
+                
+                lcd_set_cursor(1, 0);
+                lcd_print("                "); // Clear the second line by printing spaces
+                lcd_set_cursor(1, 0);
+                lcd_print(angleStr);
+
+            } else if (key == '#') {
                 angleStr[angleIndex] = '\0';
                 int angle = atoi(angleStr);
                 if (angle >= 0 && angle <= 180) {
-                    // Assuming a function to control servo here
-                    servo_enable(0, 1); // channel 0
-                    servo_set(0, angle); // set to 47 degree
-                    printf("Setting channel %d to angle %d\n",  1, angle);
-                } else {
-                    printf("Invalid angle.\n");
-                }
-
-                lcd_clear();
-                taskENTER_CRITICAL();
-                lcd_set_cursor(0, 0);
-                lcd_print(prompt); // print "Enter angle:" at the first line
-                taskEXIT_CRITICAL();
-
+                    servo_set(0, angle);
+                } 
+                
                 memset(angleStr, 0, sizeof(angleStr)); // Clear angle string
                 angleIndex = 0;
-                row = 1; col = 0; // Reset to second line for next input
+                lcd_set_cursor(1, 0);
+                lcd_print("                ");
             }
-            else if ((key >= '0' && key <= '9') && angleIndex < 3) {
-                angleStr[angleIndex++] = key;
-                taskENTER_CRITICAL();
-                key_display(key, &row, &col);
-                taskEXIT_CRITICAL();
-            }
-        }
-        
+        } 
+        // }
         vTaskDelay(pdMS_TO_TICKS(100)); // Polling delay
     }
 }
 
 // 8.4
-void escapeSequenceTask(void *pvParameters) {
-    char byte;
-    while (1) {
-        if (!isInCommandMode) {
-            if (uart_get_byte(&byte)) { // If a byte was read
-                if (atcmd_detect_escape(NULL, byte)) {
-                }
-            }
-        }
-        vTaskDelay(pdMS_TO_TICKS(10));
-    }
-}
+// void escapeSequenceTask(void *pvParameters) {
+//     char byte;
+//     while (1) {
+//         if (!isInCommandMode) {
+//             if (uart_get_byte(&byte)) { // If a byte was read
+//                 if (atcmd_detect_escape(NULL, byte)) {
+//                 }
+//             }
+//         }
+//         vTaskDelay(pdMS_TO_TICKS(10));
+//     }
+// }
 
 
 
 int main( void ) {
     uart_init(115200);
+    keypad_init();
+    i2c_master_init(80);
 
     xTaskCreate(
         vBlinkyTask,
@@ -203,7 +198,13 @@ int main( void ) {
         NULL);
 
     // servo keypad
-    xTaskCreate(vKeypadServoLCDTask, "KeypadServoLCD", configMINIMAL_STACK_SIZE, NULL, tskIDLE_PRIORITY + 1, NULL);
+    xTaskCreate(
+        vKeypadServoLCDTask, 
+        "KeypadServoLCD", 
+        configMINIMAL_STACK_SIZE, 
+        NULL, 
+        tskIDLE_PRIORITY + 1, 
+        NULL);
 
     vTaskStartScheduler();
     
