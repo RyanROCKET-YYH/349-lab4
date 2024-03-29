@@ -28,6 +28,7 @@
 #define UNLOCKED_POSITION 180
 
 atcmd_parser_t parser;
+int g_passcode = 349;
 
 uint8_t handleResume(void *args, const char *cmdArgs) {
     (void)args;
@@ -50,17 +51,24 @@ uint8_t handleHello(void *args, const char *cmdArgs) {
 uint8_t handlePasscode(void *args, const char *cmdArgs) {
     (void)args;
     (void)cmdArgs;
-    //TODO: need to print passcode
-    printf("handlePasscode\n");
+    printf("Current passcode: %d\n", g_passcode);
     return 1; // success
 }
 
 uint8_t handlePasscodeChange(void *args, const char *cmdArgs) {
-    (void)args;
-    int passcode = atoi(cmdArgs);
-    //TODO: need to change passcode
-    printf("Passcode change to %d.\n", passcode); // TODO: can't make it print out the whole sentence
-    return 1; // success
+    (void)args; 
+
+    if (cmdArgs != NULL && strlen(cmdArgs) <= 12) {
+        int new_passcode = atoi(cmdArgs);
+        g_passcode = new_passcode;
+        printf("Passcode changed successfully.\n");
+        return 1; // Success
+    } else if (cmdArgs == NULL) {
+        printf("No passcode provided.\n");
+    } else {
+        printf("Invalid passcode (string up to 12 digits).\n");
+    }
+    return 0; // Fail
 }
 
 const atcmd_t commands[] = {
@@ -137,7 +145,6 @@ void vKeypadServoLCDTask(void *pvParameters) {
     uint8_t index = 0;
     uint8_t is_locked = 1;
     lcd_driver_init();
-    int correct_password = 349;
 
     // SERVO 1 (A0)
     gpio_init(GPIO_A, 0, MODE_GP_OUTPUT, OUTPUT_PUSH_PULL, OUTPUT_SPEED_LOW, PUPD_NONE, ALT0);
@@ -164,7 +171,7 @@ void vKeypadServoLCDTask(void *pvParameters) {
                 } else if (key == '#') {
                     passcode[index] = '\0';
                     int password = atoi(passcode);
-                    if (password == correct_password) {
+                    if (password == g_passcode) {
                         is_locked = !is_locked;
                         servo_set(0, is_locked ? LOCKED_POSITION : UNLOCKED_POSITION);
                         lcd_clear();
