@@ -23,7 +23,10 @@
 #include <i2c.h>
 #include <atcmd.h>
 
-// extern void initCommandParser(atcmd_parser_t *parser);
+#define MAX_PASSCODE_LENGTH 12
+#define LOCKED_POSITION 0
+#define UNLOCKED_POSITION 180
+
 atcmd_parser_t parser;
 
 uint8_t handleResume(void *args, const char *cmdArgs) {
@@ -129,16 +132,19 @@ static void vUARTEchoTask(void *pvParameters) {
 
 void vKeypadServoLCDTask(void *pvParameters) {
     (void)pvParameters;
-    char prompt[] = "Enter angle:";
-    char angleStr[5] = {0};
-    int angleIndex = 0;
+    char passcode[MAX_PASSCODE_LENGTH] = {0};
+    char prompt[] = "Enter password:";
+    uint8_t index = 0;
+    uint8_t is_locked = 1;
     lcd_driver_init();
+    int correct_password = 349;
 
     // SERVO 1 (A0)
     gpio_init(GPIO_A, 0, MODE_GP_OUTPUT, OUTPUT_PUSH_PULL, OUTPUT_SPEED_LOW, PUPD_NONE, ALT0);
     // SERVO 2 (A1)
     gpio_init(GPIO_A, 1, MODE_GP_OUTPUT, OUTPUT_PUSH_PULL, OUTPUT_SPEED_LOW, PUPD_NONE, ALT0);
     servo_enable(0, 1);
+    servo_set(0,LOCKED_POSITION); // initialized to lock state
     lcd_clear();
     lcd_print(prompt);
 
@@ -147,26 +153,37 @@ void vKeypadServoLCDTask(void *pvParameters) {
         if (!isInCommandMode){
             char key = keypad_read();
             if (key != '\0') {
-                if ((key >= '0' && key <= '9') && angleIndex < 3) {
-                    angleStr[angleIndex++] = key;
-                    angleStr[angleIndex] = '\0';
+                if ((key >= '0' && key <= '9') && index < MAX_PASSCODE_LENGTH) {
+                    passcode[index++] = key;
+                    passcode[index] = '\0';
                     
                     lcd_set_cursor(1, 0);
                     lcd_print("                "); // Clear the second line by printing spaces
                     lcd_set_cursor(1, 0);
-                    lcd_print(angleStr);
-
+                    lcd_print(passcode);
                 } else if (key == '#') {
-                    angleStr[angleIndex] = '\0';
-                    int angle = atoi(angleStr);
-                    if (angle >= 0 && angle <= 180) {
-                        servo_set(0, angle);
-                    } 
+                    passcode[index] = '\0';
+                    int password = atoi(passcode);
+                    if (password == correct_password) {
+                        is_locked = !is_locked;
+                        servo_set(0, is_locked ? LOCKED_POSITION : UNLOCKED_POSITION);
+                        lcd_clear();
+                        lcd_print(is_locked ? "Locking!" : "Unlocking!");
+                        vTaskDelay(pdMS_TO_TICKS(1000));
+                        lcd_clear();
+                        lcd_print(prompt);
+                    } else {
+                        lcd_clear();
+                        lcd_print("Incorrect Passco");
+                        lcd_set_cursor(1,0);
+                        lcd_print("de...");
+                        vTaskDelay(pdMS_TO_TICKS(1000));
+                        lcd_clear();
+                        lcd_print(prompt);
+                    }
                     
-                    memset(angleStr, 0, sizeof(angleStr)); // Clear angle string
-                    angleIndex = 0;
-                    lcd_set_cursor(1, 0);
-                    lcd_print("                ");
+                    memset(passcode, 0, sizeof(passcode)); // Clear angle string
+                    index = 0;
                 }
             } 
         }
