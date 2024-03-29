@@ -21,9 +21,52 @@
 #include <servo.h>
 #include <stdbool.h>
 #include <i2c.h>
-// #include <printk.h>
+#include <atcmd.h>
 
-volatile bool isInCommandMode = true;
+// extern void initCommandParser(atcmd_parser_t *parser);
+atcmd_parser_t parser;
+
+uint8_t handleResume(void *args, const char *cmdArgs) {
+    (void)args;
+    (void)cmdArgs;
+    isInCommandMode = false;
+    printf("Exit command mode\n");
+    // TODO: can't make it print "hello world" from Section 6.3 to resume printing.
+    return 1; // sucess
+}
+
+uint8_t handleHello(void *args, const char *cmdArgs) {
+    (void)args;
+    if (cmdArgs != NULL) {
+        printf("Hello, %s!\n", cmdArgs);
+    } else {
+        printf("Hello!\n"); //if <name> not provided
+    }
+    return 1; // success
+}
+
+uint8_t handlePasscode(void *args, const char *cmdArgs) {
+    (void)args;
+    (void)cmdArgs;
+    //TODO: need to print passcode
+    printf("handlePasscode\n");
+    return 1; // success
+}
+
+uint8_t handlePasscodeChange(void *args, const char *cmdArgs) {
+    (void)args;
+    int passcode = atoi(cmdArgs);
+    //TODO: need to change passcode
+    printf("Passcode change to %d.\n", passcode); // TODO: can't make it print out the whole sentence
+    return 1; // success
+}
+
+const atcmd_t commands[] = {
+    {"RESUME", handleResume, NULL},
+    {"HELLO", handleHello, NULL},
+    {"PASSCODE?", handlePasscode, NULL},
+    {"PASSCODE", handlePasscodeChange, NULL}
+};
 
 static void vHelloWorldTask(void *pvParameters) {
     (void)pvParameters;
@@ -52,12 +95,12 @@ void vBlinkyTask(void *pvParameters) {
         // wait for 1000 millisec
         vTaskDelay(pdMS_TO_TICKS(500));
     }
-    
 }
 
 static void vUARTEchoTask(void *pvParameters) {
     (void)pvParameters;
     char buffer[100];
+    // char testCmd2[] = "AT+RESUME";
 
     for (;;) {
         // only work when command mode
@@ -68,41 +111,22 @@ static void vUARTEchoTask(void *pvParameters) {
             ssize_t numBytesRead = read(STDIN_FILENO, buffer, sizeof(buffer) - 1);
             // check if data was read
             if (numBytesRead > 0) {
-                //ensure the string is null-terminated
-                buffer[numBytesRead] = '\0';
-                // Echo back the received data
-                write(STDOUT_FILENO, "You typed:", strlen("You typed:"));
-                write(STDOUT_FILENO, buffer, numBytesRead);
-                write(STDOUT_FILENO, "\n", 1);
+                buffer[numBytesRead] = '\0'; // Null-terminate the received string
+
+                // Trim newline and carriage return from the end of the command
+                for (int i = 0; i < numBytesRead; ++i) {
+                    if (buffer[i] == '\n' || buffer[i] == '\r') {
+                        buffer[i] = '\0';
+                        break; // Stop at the first newline/carriage return character
+                    }
+                }
+                // Now pass the trimmed and null-terminated command string to atcmd_parse
+                atcmd_parse(&parser, buffer);
             }
         }
-        
         vTaskDelay(pdMS_TO_TICKS(100));
     }
 }
-
-/**
- * key_display():
- * @brief set the lcd cursor position.
-*/
-void key_display(char key, uint8_t *row, uint8_t *col) {
-    if (*col >= 16) {
-        *col = 0;
-        if (*row == 0) {
-            *row = 1;
-        } else {
-            lcd_clear();
-            *row = 0; // Reset to first line
-        }
-    }
-
-    lcd_set_cursor(*row, *col);
-    char display[2] = {key, '\0'}; // Prepare the string for display
-    lcd_print(display); // Show the key pressed
-
-    (*col)++; // Move cursor position forward
-}
-
 
 void vKeypadServoLCDTask(void *pvParameters) {
     (void)pvParameters;
@@ -121,32 +145,32 @@ void vKeypadServoLCDTask(void *pvParameters) {
 
     for (;;) {
         // when it is command mode, it doesn't read keypad
-        // if (!isInCommandMode){
-        char key = keypad_read();
-        if (key != '\0') {
-            if ((key >= '0' && key <= '9') && angleIndex < 3) {
-                angleStr[angleIndex++] = key;
-                angleStr[angleIndex] = '\0';
-                
-                lcd_set_cursor(1, 0);
-                lcd_print("                "); // Clear the second line by printing spaces
-                lcd_set_cursor(1, 0);
-                lcd_print(angleStr);
+        if (!isInCommandMode){
+            char key = keypad_read();
+            if (key != '\0') {
+                if ((key >= '0' && key <= '9') && angleIndex < 3) {
+                    angleStr[angleIndex++] = key;
+                    angleStr[angleIndex] = '\0';
+                    
+                    lcd_set_cursor(1, 0);
+                    lcd_print("                "); // Clear the second line by printing spaces
+                    lcd_set_cursor(1, 0);
+                    lcd_print(angleStr);
 
-            } else if (key == '#') {
-                angleStr[angleIndex] = '\0';
-                int angle = atoi(angleStr);
-                if (angle >= 0 && angle <= 180) {
-                    servo_set(0, angle);
-                } 
-                
-                memset(angleStr, 0, sizeof(angleStr)); // Clear angle string
-                angleIndex = 0;
-                lcd_set_cursor(1, 0);
-                lcd_print("                ");
-            }
-        } 
-        // }
+                } else if (key == '#') {
+                    angleStr[angleIndex] = '\0';
+                    int angle = atoi(angleStr);
+                    if (angle >= 0 && angle <= 180) {
+                        servo_set(0, angle);
+                    } 
+                    
+                    memset(angleStr, 0, sizeof(angleStr)); // Clear angle string
+                    angleIndex = 0;
+                    lcd_set_cursor(1, 0);
+                    lcd_print("                ");
+                }
+            } 
+        }
         vTaskDelay(pdMS_TO_TICKS(100)); // Polling delay
     }
 }
@@ -171,6 +195,7 @@ int main( void ) {
     uart_init(115200);
     keypad_init();
     i2c_master_init(80);
+    atcmd_parser_init(&parser, commands, (sizeof(commands) / sizeof(commands[0])));
 
     xTaskCreate(
         vBlinkyTask,
@@ -209,6 +234,6 @@ int main( void ) {
     vTaskStartScheduler();
     
     // Infinite loop
-    for(;;);
+    for(;;) {}
     return 0;
 }

@@ -3,6 +3,8 @@
 
 #include <stdint.h>
 
+extern int isInCommandMode;
+
 typedef uint8_t (*atcmd_fn_t)(void *args, const char *cmdargs);
 
 typedef struct {

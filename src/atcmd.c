@@ -18,7 +18,7 @@
 
 #define UNUSED __attribute__((unused))
 
-extern bool isInCommandMode;
+int isInCommandMode = 1;
 
 void atcmd_parser_init(UNUSED atcmd_parser_t *parser, UNUSED const atcmd_t *atcmds, UNUSED uint32_t num_atcmds) {
     memset(parser, 0x00, sizeof(atcmd_parser_t));
@@ -47,6 +47,11 @@ uint8_t atcmd_detect_escape(UNUSED atcmd_parser_t *parser, UNUSED char c) {
 // check each command stored in the atcmd parser to see if its cmdstr matches the provided command name
 // return 1 if command is found; return 0 when command is not found
 uint8_t atcmd_parse(UNUSED atcmd_parser_t *parser, UNUSED char *cmd) {
+
+    if (cmd == NULL || parser == NULL) {
+        printf("Command or Parser is NULL.\n");
+    }
+
     // command doesn't start with AT+
     if (strncmp(cmd, "AT+", 3) != 0) {
         printf("Command does not start with 'AT+'.\n");
@@ -62,7 +67,7 @@ uint8_t atcmd_parse(UNUSED atcmd_parser_t *parser, UNUSED char *cmd) {
         if (strncmp(parser->atcmds[i].cmdstr, cmd, cmdNameLen) == 0 && parser->atcmds[i].cmdstr[cmdNameLen] == '\0') {
             // A matching command has been found
             if (parser->atcmds[i].fn(parser->atcmds[i].args, cmdArgs)) {
-                printf("Command '%s' executed successfully.\n", parser->atcmds[i].cmdstr);
+                // printf("Command '%s' executed successfully.\n", parser->atcmds[i].cmdstr);
                 return 1; // Command executed successfully
             } else {
                 printf("Command '%s' failed to execute.\n", parser->atcmds[i].cmdstr);
