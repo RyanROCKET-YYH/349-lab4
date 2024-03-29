@@ -88,7 +88,7 @@ $(function() {
 </div><!--header-->
 <div class="contents">
 
-<p>main file to run the whole program  
+<p>some functions about AT command  
 <a href="#details">More...</a></p>
 <div class="textblock"><code>#include &lt;atcmd.h&gt;</code><br />
 <code>#include &lt;string.h&gt;</code><br />
@@ -100,20 +100,21 @@ $(function() {
 Macros</h2></td></tr>
 <tr class="memitem:addf5ec070e9499d36b7f2009ce736076" id="r_addf5ec070e9499d36b7f2009ce736076"><td class="memItemLeft" align="right" valign="top"><a id="addf5ec070e9499d36b7f2009ce736076" name="addf5ec070e9499d36b7f2009ce736076"></a>
 #define&#160;</td><td class="memItemRight" valign="bottom"><b>UNUSED</b>&#160;&#160;&#160;__attribute__((unused))</td></tr>
+<tr class="memdesc:addf5ec070e9499d36b7f2009ce736076"><td class="mdescLeft">&#160;</td><td class="mdescRight">define unused variables <br /></td></tr>
 <tr class="separator:addf5ec070e9499d36b7f2009ce736076"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="func-members" name="func-members"></a>
 Functions</h2></td></tr>
 <tr class="memitem:ad5965e8e11d022b92e58e490261971f4" id="r_ad5965e8e11d022b92e58e490261971f4"><td class="memItemLeft" align="right" valign="top"><a id="ad5965e8e11d022b92e58e490261971f4" name="ad5965e8e11d022b92e58e490261971f4"></a>
-void&#160;</td><td class="memItemRight" valign="bottom"><b>atcmd_parser_init</b> (UNUSED atcmd_parser_t *<a class="el" href="main_8c.html#a05fe9081226ae566fc801d5b66c0b301">parser</a>, UNUSED const atcmd_t *atcmds, UNUSED uint32_t num_atcmds)</td></tr>
+void&#160;</td><td class="memItemRight" valign="bottom"><b>atcmd_parser_init</b> (<a class="el" href="#addf5ec070e9499d36b7f2009ce736076">UNUSED</a> atcmd_parser_t *<a class="el" href="main_8c.html#a05fe9081226ae566fc801d5b66c0b301">parser</a>, <a class="el" href="#addf5ec070e9499d36b7f2009ce736076">UNUSED</a> const atcmd_t *atcmds, <a class="el" href="#addf5ec070e9499d36b7f2009ce736076">UNUSED</a> uint32_t num_atcmds)</td></tr>
 <tr class="memdesc:ad5965e8e11d022b92e58e490261971f4"><td class="mdescLeft">&#160;</td><td class="mdescRight">initialize the atcmd_parser <br /></td></tr>
 <tr class="separator:ad5965e8e11d022b92e58e490261971f4"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a9cad3467cd231cb0501ccc077fe06f49" id="r_a9cad3467cd231cb0501ccc077fe06f49"><td class="memItemLeft" align="right" valign="top"><a id="a9cad3467cd231cb0501ccc077fe06f49" name="a9cad3467cd231cb0501ccc077fe06f49"></a>
-uint8_t&#160;</td><td class="memItemRight" valign="bottom"><b>atcmd_detect_escape</b> (UNUSED atcmd_parser_t *<a class="el" href="main_8c.html#a05fe9081226ae566fc801d5b66c0b301">parser</a>, UNUSED char c)</td></tr>
+uint8_t&#160;</td><td class="memItemRight" valign="bottom"><b>atcmd_detect_escape</b> (<a class="el" href="#addf5ec070e9499d36b7f2009ce736076">UNUSED</a> atcmd_parser_t *<a class="el" href="main_8c.html#a05fe9081226ae566fc801d5b66c0b301">parser</a>, <a class="el" href="#addf5ec070e9499d36b7f2009ce736076">UNUSED</a> char c)</td></tr>
 <tr class="memdesc:a9cad3467cd231cb0501ccc077fe06f49"><td class="mdescLeft">&#160;</td><td class="mdescRight">detect +++ command <br /></td></tr>
 <tr class="separator:a9cad3467cd231cb0501ccc077fe06f49"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ab4adb013f363e18713dd3cc7c92a3821" id="r_ab4adb013f363e18713dd3cc7c92a3821"><td class="memItemLeft" align="right" valign="top"><a id="ab4adb013f363e18713dd3cc7c92a3821" name="ab4adb013f363e18713dd3cc7c92a3821"></a>
-uint8_t&#160;</td><td class="memItemRight" valign="bottom"><b>atcmd_parse</b> (UNUSED atcmd_parser_t *<a class="el" href="main_8c.html#a05fe9081226ae566fc801d5b66c0b301">parser</a>, UNUSED char *cmd)</td></tr>
+uint8_t&#160;</td><td class="memItemRight" valign="bottom"><b>atcmd_parse</b> (<a class="el" href="#addf5ec070e9499d36b7f2009ce736076">UNUSED</a> atcmd_parser_t *<a class="el" href="main_8c.html#a05fe9081226ae566fc801d5b66c0b301">parser</a>, <a class="el" href="#addf5ec070e9499d36b7f2009ce736076">UNUSED</a> char *cmd)</td></tr>
 <tr class="memdesc:ab4adb013f363e18713dd3cc7c92a3821"><td class="mdescLeft">&#160;</td><td class="mdescRight">check each command stored in the atcmd parser to see if its cmdstr matches the provided command name return 1 if command is found; return 0 when command is not found <br /></td></tr>
 <tr class="separator:ab4adb013f363e18713dd3cc7c92a3821"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
@@ -125,7 +126,7 @@ int&#160;</td><td class="memItemRight" valign="bottom"><b>isInCommandMode</b> = 
 <tr class="separator:a6d3580ec17142463bfa9e1606cd85ba7"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
-<div class="textblock"><p>main file to run the whole program </p>
+<div class="textblock"><p>some functions about AT command </p>
 <dl class="section date"><dt>Date</dt><dd>03/29/2024</dd></dl>
 <dl class="section author"><dt>Author</dt><dd>Yuhong Yao (yuhongy), Yiying Li (yiyingl4) </dd></dl>
 </div></div><!-- contents -->

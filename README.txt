@@ -5,7 +5,7 @@
 
 Yuhong Yao(yuhongy), Yiying Li(yiyingl4)
 
-It's our first time to use RTOS. It's really cool.
+It's our first time to use FreeRTOS. It's really cool.
 
 Yiying worked on integrating FreeRTOS, 6.4 task, and at command function. Yuhong handled the remaining parts and combined everything together.
 

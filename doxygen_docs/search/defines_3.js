@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['max_5fpasscode_5flength_0',['MAX_PASSCODE_LENGTH',['../main_8c.html#a84cc0d5c74794ab88096293c65dc2e25',1,'main.c']]]
+  ['locked_5fposition_0',['LOCKED_POSITION',['../main_8c.html#ac688de473127bf5a6423466a0221095d',1,'main.c']]]
 ];

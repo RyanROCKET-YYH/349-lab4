@@ -15,7 +15,7 @@
 #include <stdio.h>
 
 
-
+/** @brief define unused variables */
 #define UNUSED __attribute__((unused))
 
 /** @brief define a variable to command mode */
